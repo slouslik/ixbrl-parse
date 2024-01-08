@@ -15,7 +15,7 @@ import number_parser
 import re
 import sys
 from . value import *
-
+import string
 
 states = {
     "ALABAMA": "AL",
@@ -890,6 +890,7 @@ def datemonthday(pre, value):
     return MonthDay(int(elts[0]), int(elts[1]))
 
 def datedaymonthyear(pre, value):
+    value = ''.join(char if char.isprintable() else ' ' for char in value)
     value = value.strip()
     elts = re.split(r'[^0-9]+', value)
     value = datetime.date(int(elts[2]), int(elts[1]), int(elts[0]))
@@ -916,13 +917,24 @@ def datedaymonthyearen(pre, value):
     # 2009" is not permitted. When a date contains several month names
     # (e.g. "30th day of January, March and April, 1969"), the
     # transform must match the last occurrence.
+    value = ''.join(char if char.isprintable() and char not in string.punctuation else ' ' for char in value)
     value = value.strip()
     value = re.sub("([0-9]+)st", "\\1", value)
     value = re.sub("([0-9]+)nd", "\\1", value)
     value = re.sub("([0-9]+)rd", "\\1", value)
     value = re.sub("([0-9]+)th", "\\1", value)
-    value = datetime.datetime.strptime(value, "%d %B %Y").date()
-    return Date(value)
+    try:
+        value = datetime.datetime.strptime(value, "%d %B %Y").date()
+        return Date(value)
+    except:
+        pass
+    
+    try:
+        value = datetime.datetime.strptime(value, "%B %d %Y").date()
+        return Date(value)
+    except:
+        pass
+
 
 def booleanfalse(pre, value):
     return Boolean(False)
@@ -951,6 +963,20 @@ def fixedzero(pre, value):
     value = 0
 
     f = Float(0)
+    if pre.unit: f.unit = pre.unit
+    return f
+
+def fixedfalse(pre, value):
+    value = 0
+
+    f = Boolean(False)
+    if pre.unit: f.unit = pre.unit
+    return f
+
+def fixedtrue(pre, value):
+    value = 0
+
+    f = Boolean(True)
     if pre.unit: f.unit = pre.unit
     return f
 
@@ -998,6 +1024,7 @@ def numwordsen(pre, value):
 
 
 SEC_XFORM = "http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
+XBRL_XFORM_2022 = "http://www.xbrl.org/inlineXBRL/transformation/2022-02-16"
 XBRL_XFORM_2020 = "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12"
 XBRL_XFORM_2015 = "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26"
 XBRL_XFORM_2011 = "http://www.xbrl.org/inlineXBRL/transformation/2011-07-31"
@@ -1028,6 +1055,8 @@ registry[ET.QName(SEC_XFORM, "durmonth")] = durmonth
 registry[ET.QName(SEC_XFORM, "durweek")] = durweek
 registry[ET.QName(SEC_XFORM, "durday")] = durday
 registry[ET.QName(SEC_XFORM, "durhour")] = durhour
+registry[ET.QName(XBRL_XFORM_2020, "date-month-day")] = datemonthday
+registry[ET.QName(XBRL_XFORM_2020, "date-monthname-day-year-en")] = datedaymonthyearen
 registry[ET.QName(XBRL_XFORM_2015, "datemonthday")] = datemonthday
 registry[ET.QName(XBRL_XFORM_2015, "datedaymonthyear")] = datedaymonthyear
 registry[ET.QName(XBRL_XFORM_2011, "datedaymonthyear")] = datedaymonthyear
@@ -1044,6 +1073,8 @@ registry[ET.QName(XBRL_XFORM_2011, "nocontent")] = nocontent
 registry[ET.QName(XBRL_XFORM_2020, "num-dot-decimal")] = numdotdecimal
 registry[ET.QName(XBRL_XFORM_2015, "fixed-zero")] = fixedzero
 registry[ET.QName(XBRL_XFORM_2020, "fixed-zero")] = fixedzero
+registry[ET.QName(XBRL_XFORM_2020, "fixed-false")] = fixedfalse
+registry[ET.QName(XBRL_XFORM_2020, "fixed-true")] = fixedtrue
 registry[ET.QName(XBRL_XFORM_2015, "numdotdecimal")] = numdotdecimal
 registry[ET.QName(XBRL_XFORM_2011, "numdotdecimal")] = numdotdecimal
 registry[ET.QName(XBRL_XFORM_2015, "numcommadecimal")] = numdotdecimal

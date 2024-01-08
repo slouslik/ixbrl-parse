@@ -43,5 +43,5 @@ for rel in rels:
         rel[0], rel[1], rel[2]
     ))
 
-print(g.serialize(format=args.format).decode("utf-8"))
+print(g.serialize(format=args.format).encode("utf-8"))
 

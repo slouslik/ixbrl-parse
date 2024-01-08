@@ -1,1 +1,4 @@
 *~
+ixbrl_parse/__pycache__/*
+ixbrl_parse/__init__.py
+data/

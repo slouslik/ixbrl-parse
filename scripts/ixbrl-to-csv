@@ -9,7 +9,8 @@ name.
 """
 
 import datetime
-from lxml import etree as ET
+import html
+from lxml import etree
 import sys
 import argparse
 import csv
@@ -27,7 +28,8 @@ parser.add_argument('input', metavar='input', nargs=1,
 # Parse arguments
 args = parser.parse_args(sys.argv[1:])
 
-tree = ET.parse(args.input[0])
+with open(args.input[0], 'r', encoding='utf-8') as file:
+    tree = etree.parse(file)
 
 i = parse(tree)
 
